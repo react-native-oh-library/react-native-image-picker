@@ -1,6 +1,6 @@
 {
   "name": "react-native-image-picker",
-  "version": "7.0.3",
+  "version": "7.0.3-0.0.1",
   "description": "A React Native module that allows you to use native UI to select media from the device library or directly from the camera",
   "react-native": "src/index.ts",
   "main": "src/index.ts",
@@ -11,7 +11,8 @@
     "/ios",
     "/*.podspec",
     "/src",
-    "/lib"
+    "/lib",
+    "harmony"
   ],
   "author": "Johan du Toit (Johan-dutoit)",
   "homepage": "https://github.com/react-native-image-picker/react-native-image-picker",
