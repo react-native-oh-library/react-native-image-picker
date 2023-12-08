@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "react-native-image-picker",
+        "License": "MIT License",
+        "License File": "https://github.com/react-native-image-picker/react-native-image-picker/blob/main/LICENSE.md",
+        "Version Number": "7.0.3",
+        "Owner" : "Johan du Toit (Johan-dutoit)"
+        "Upstream URL": "https://github.com/react-native-image-picker/react-native-image-picker",
+        "Description": "A React Native module that allows you to select a photo/video from the device library or camera."
+    }
+]
