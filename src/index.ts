@@ -1,16 +1,17 @@
-import {Platform} from 'react-native';
+import { Platform } from 'react-native';
 
-import {CameraOptions, ImageLibraryOptions, Callback} from './types';
+import { CameraOptions, ImageLibraryOptions, Callback } from 'react-native-image-picker';
 import {
   imageLibrary as nativeImageLibrary,
   camera as nativeCamera,
-} from './platforms/native';
+} from 'react-native-image-picker/src/platforms/native';
+
 import {
   imageLibrary as webImageLibrary,
   camera as webCamera,
-} from './platforms/web';
+} from 'react-native-image-picker/src/platforms/web';
 
-export * from './types';
+export * from 'react-native-image-picker/src/types';
 
 export function launchCamera(options: CameraOptions, callback?: Callback) {
   return Platform.OS === 'web'
