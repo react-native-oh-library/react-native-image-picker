@@ -118,12 +118,8 @@ export class ImagePickerTurboModule extends TurboModule {
       return results
     }
     let want = {
-      "deviceId": "",
-      "bundleName": "",
-      "abilityName": "",
-      "uri": "",
-      "type": "image/*",
-      "action": action,
+      "type": "multipleselect",
+      "action": "ohos.want.action.photoPicker",
       "parameters": {
         uri: 'multipleselect',
         maxSelectCount: selectionLimit,
