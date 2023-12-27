@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "RNImagePickerTurbomodule.h"
+#include "RNImagePickerTurboModule.h"
 
 using namespace rnoh;
 using namespace facebook;
