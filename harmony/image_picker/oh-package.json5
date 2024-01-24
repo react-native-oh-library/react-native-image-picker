@@ -1,12 +1,13 @@
 {
   "license": "MIT",
   "devDependencies": {
-    "rnoh": "file:../rnoh"
   },
   "author": "",
   "name": "imagePicker",
   "description": "Please describe the basic information.",
   "main": "ts.ts",
   "version": "1.0.0",
-  "dependencies": {}
+  "dependencies": {
+    "rnoh": "file:../rnoh"
+  }
 }
