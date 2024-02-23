@@ -1,6 +1,6 @@
 {
   "name": "@react-native-oh-tpl/react-native-image-picker",
-  "version": "7.0.3-0.0.7",
+  "version": "7.0.3-0.0.8",
   "description": "A React Native module that allows you to use native UI to select media from the device library or directly from the camera",
   "react-native": "src/index.ts",
   "main": "src/index.ts",
@@ -13,9 +13,6 @@
     "access": "public"
   },
   "files": [
-    "/android",
-    "!/android/build",
-    "/ios",
     "/*.podspec",
     "/src",
     "/lib",
@@ -62,13 +59,5 @@
     "targets": [
       "typescript"
     ]
-  },
-  "codegenConfig": {
-    "name": "RNImagePickerSpec",
-    "type": "modules",
-    "jsSrcsDir": "src",
-    "android": {
-      "javaPackageName": "com.imagepicker"
-    }
   }
 }
