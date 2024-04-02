@@ -57,3 +57,5 @@ example/ios-bundle.js
 index.android.bundle
 index.ios.bundle
 lib/
+
+*.tgz
