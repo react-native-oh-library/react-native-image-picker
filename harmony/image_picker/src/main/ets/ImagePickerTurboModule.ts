@@ -26,8 +26,8 @@ import fs from '@ohos.file.fs';
 import image from '@ohos.multimedia.image';
 import wantConstant from '@ohos.app.ability.wantConstant';
 import util from '@ohos.util';
-import { TurboModule } from 'rnoh/ts';
-import type { TurboModuleContext } from 'rnoh/ts';
+import { TurboModule } from '@rnoh/react-native-openharmony/ts';
+import type { TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import type Want from '@ohos.app.ability.Want';
 import Logger from './Logger'
 

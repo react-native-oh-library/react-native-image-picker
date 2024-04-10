@@ -6,8 +6,8 @@
   "name": "@react-native-oh-tpl/react-native-image-picker",
   "description": "Please describe the basic information.",
   "main": "ts.ts",
-  "version": "7.0.3-0.0.9",
+  "version": "7.0.3-0.1.0",
   "dependencies": {
-    "rnoh": "file:../rnoh"
+    "@rnoh/react-native-openharmony": "file:../rnoh"
   }
 }
