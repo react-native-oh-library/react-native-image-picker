@@ -162,8 +162,8 @@ export class ImagePickerTurboModule extends TurboModule {
         let imageIS = image.createImageSource(file.fd)
         let imagePM = await imageIS.createPixelMap()
         let imgInfo = await imagePM.getImageInfo()
-        imgObj.height = imgInfo.size.width
-        imgObj.width = imgInfo.size.height
+        imgObj.height = imgInfo.size.height
+        imgObj.width = imgInfo.size.width
         imagePM.release().then(() => {
           imagePM = undefined
         })
