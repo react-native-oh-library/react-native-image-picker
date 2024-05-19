@@ -29,7 +29,14 @@ import util from '@ohos.util';
 import { TurboModule } from '@rnoh/react-native-openharmony/ts';
 import type { TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import type Want from '@ohos.app.ability.Want';
-import Logger from './Logger'
+import Logger from './Logger';
+
+
+import picker from '@ohos.multimedia.cameraPicker';
+import camera from '@ohos.multimedia.camera'
+import { BusinessError } from '@kit.BasicServicesKit';
+import cameraPicker from '@ohos.multimedia.cameraPicker';
+import { buffer } from '@kit.ArkTS';
 
 export type MediaType = 'photo' | 'video' | 'mixed';
 
@@ -91,17 +98,65 @@ export interface CameraOptions extends OptionsCommon {
   cameraType?: CameraType;
 }
 
+const PHOTO_EXT_LIST = ['xbm','tif','pjp','svgz','jpg','jpeg','ico','tiff','gif','svg','jfif','webp','png','bmp','pjpeg','avif']
+
+function isPhoto(ext: string) {
+  PHOTO_EXT_LIST.includes(ext);
+}
+
 export class ImagePickerTurboModule extends TurboModule {
   constructor(protected ctx: TurboModuleContext) {
     super(ctx);
   }
 
-  launchCamera(options?: CameraOptions): void {
-    Logger.info('launchCamera', JSON.stringify(options));
+  base64Helper = new util.Base64Helper();
+
+  public getMediaTypeByOption(mediaType: MediaType): cameraPicker.PickerMediaType[] {
+    let mediaTypeArr: cameraPicker.PickerMediaType[] = [];
+    if (mediaType === 'photo') {
+      mediaTypeArr.push(picker.PickerMediaType.PHOTO)
+    }
+    if (mediaType === 'video') {
+      mediaTypeArr.push(picker.PickerMediaType.VIDEO)
+    }
+    if (mediaType === 'mixed') {
+      mediaTypeArr = [picker.PickerMediaType.PHOTO, picker.PickerMediaType.VIDEO]
+    }
+    return mediaTypeArr;
   }
 
-  launchImageLibrary(options?: ImageLibraryOptions, callback?: (e) => void): void {
-    let res = this.startAbilityToImage(options.mediaType, options.selectionLimit, wantConstant.Flags.FLAG_AUTH_WRITE_URI_PERMISSION)
+  public async launchCamera(options: CameraOptions, callback: (e) => void): Promise<void> {
+    Logger.info('launchCamera', JSON.stringify(options));
+    let results: ImagePickerResponse = { assets: [] };
+    try {
+      let pickerProfile: picker.PickerProfile = {
+        cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK
+      };
+      if (options.cameraType === "front") {
+        pickerProfile.cameraPosition = camera.CameraPosition.CAMERA_POSITION_FRONT;
+      };
+      let pickerResult: picker.PickerResult = await picker.pick(
+        this.ctx.uiAbilityContext,
+        this.getMediaTypeByOption(options.mediaType),
+        pickerProfile
+      );
+      if (pickerResult.resultCode == -1) {
+        results.didCancel = true
+        callback(results)
+        return;
+      };
+      results.assets?.push(
+        await this.getAsset(pickerResult.resultUri, options)
+      );
+      callback(results);
+    } catch (error) {
+      let err = error as BusinessError;
+      Logger.error(`the pick call failed. error code: ${err.code} ${err.message}`);
+    }
+  }
+
+  launchImageLibrary(options: ImageLibraryOptions, callback: (e) => void): void {
+    let res = this.startAbilityToImage(options.mediaType, options.selectionLimit, wantConstant.Flags.FLAG_AUTH_WRITE_URI_PERMISSION, options)
     res.then((e) => {
       Logger.info(JSON.stringify(e));
       callback(e);
@@ -111,7 +166,7 @@ export class ImagePickerTurboModule extends TurboModule {
     })
   }
 
-  async startAbilityToImage(type: MediaType, selectionLimit: number, action: wantConstant.Flags | string): Promise<ImagePickerResponse> {
+  async startAbilityToImage(type: MediaType, selectionLimit: number, action: wantConstant.Flags | string, options: ImageLibraryOptions): Promise<ImagePickerResponse> {
     let results: ImagePickerResponse = { assets: [] }
     if (selectionLimit > 100) {
       results.didCancel = true
@@ -129,6 +184,7 @@ export class ImagePickerTurboModule extends TurboModule {
     }
 
     let result: AbilityResult = await this.ctx.uiAbilityContext.startAbilityForResult(want as Want);
+
     if (result.resultCode == -1) {
       results.didCancel = true
       return results
@@ -136,44 +192,124 @@ export class ImagePickerTurboModule extends TurboModule {
 
     let images: Array<string> = result.want.parameters['select-item-list'] as Array<string>
     for (let value of images) {
-      let imgObj: Asset = {}
-      const mimeUri = value.substring(0, 4)
-      if (mimeUri === 'file') {
-        let i = value.lastIndexOf('/')
-        imgObj.fileName = value.substring(i + 1)
-        i = value.lastIndexOf('.')
-        imgObj.type = 'Unknown'
-        if (i != -1) {
-          imgObj.type = value.substring(i + 1)
-        }
-      }
-      let file = fs.openSync(value, fs.OpenMode.CREATE)
-      let stat = fs.statSync(file.fd);
-      imgObj.originalPath = value
-      try {
-        let filePath = this.ctx.uiAbilityContext.cacheDir + '/rn_image_picker_lib_temp_' + util.generateRandomUUID(true) + '.' + imgObj.type
-        fs.copyFileSync(file.fd, filePath, 0)
-        imgObj.uri = 'file://' + filePath
-      } catch (e) {
-        Logger.info('复制到应用缓存区失败!', JSON.stringify(e));
-      }
-      imgObj.fileSize = stat.size;
-      if (type === 'photo') {
-        let imageIS = image.createImageSource(file.fd)
-        let imagePM = await imageIS.createPixelMap()
-        let imgInfo = await imagePM.getImageInfo()
-        imgObj.height = imgInfo.size.height
-        imgObj.width = imgInfo.size.width
-        imagePM.release().then(() => {
-          imagePM = undefined
-        })
-        imageIS.release().then(() => {
-          imageIS = undefined
-        })
-      }
-      fs.closeSync(file);
-      results.assets.push(imgObj)
+      results.assets.push(await this.getAsset(value, options))
     }
     return results;
+  }
+
+
+  private async getAsset(uri: string, options: ImageLibraryOptions) {
+    const pickerMediaType = options.mediaType;
+    let imgObj: Asset = {}
+    const { fileName, type } = this.getImgTypeAndName(uri);
+    imgObj.fileName = fileName;
+    imgObj.type = type;
+    imgObj.originalPath = uri;
+    let file = fs.openSync(uri, fs.OpenMode.CREATE);
+    imgObj.fileSize = this.getFileSize(file.fd);
+    if (
+      pickerMediaType === 'photo' || pickerMediaType === 'mixed' && isPhoto(type)
+    ) {
+      const { width, height, uri } = await this.getImageSize(file.fd, options, type);
+      imgObj.height = height;
+      imgObj.width = width;
+      imgObj.uri = uri;
+    } else {
+      imgObj.uri = this.copyFileToCache(file.fd, imgObj.type);
+    };
+    if (options.includeBase64) {
+      imgObj.base64 = await this.getFileBase64(imgObj.uri);
+    };
+    fs.closeSync(file);
+    return imgObj;
+  }
+
+  private async getFileBase64(uri: string) {
+    let text = await fs.readText(uri);
+    return buffer.from(text, 'utf8').toString('base64');
+  }
+
+  private getCacheFilePath(type) {
+    return this.ctx.uiAbilityContext.cacheDir + '/rn_image_picker_lib_temp_' + util.generateRandomUUID(true) + '.' + type;
+  }
+
+
+  private copyFileToCache(fd: number, type: string) {
+    try {
+      let filePath = this.getCacheFilePath(type)
+      fs.copyFileSync(fd, filePath, 0)
+      return 'file://' + filePath
+    } catch (e) {
+      Logger.info('复制到应用缓存区失败!', JSON.stringify(e));
+    }
+  }
+
+  private async getImageSize(fd: number, options: ImageLibraryOptions, type: string) {
+    let imageIS = image.createImageSource(fd)
+    let imagePM = await imageIS.createPixelMap({editable: true});
+    let imgInfo = await imagePM.getImageInfo();
+    let width = imgInfo.size.width;
+    let height = imgInfo.size.height;
+    let xScale = 1;
+    let yScale = 1;
+    const { maxWidth, maxHeight } = options;
+    let isChange = false;
+    if (maxWidth && width > maxWidth) {
+      xScale = maxWidth / width;
+      width = maxWidth;
+      isChange = true;
+    }
+    if (maxHeight && height > maxHeight) {
+      yScale = maxHeight / height;
+      height = maxHeight;
+      isChange = true;
+    }
+    let uri = this.getCacheFilePath(type);
+    if (isChange) {
+      try {
+        Logger.info(`x, y scale: ${xScale}, ${yScale}`);
+        await imagePM.scale(xScale, yScale);
+        const imagePackerApi: image.ImagePacker = image.createImagePacker();
+        const file = fs.openSync(uri, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
+        const buf = await imagePackerApi.packing(imagePM, {format: imgInfo.mimeType, quality: 98});
+        await fs.write(file.fd, buf)
+        fs.closeSync(file.fd)
+      } catch (err) {
+        Logger.error(JSON.stringify(err))
+      }
+    } else {
+      uri = this.copyFileToCache(fd, type);
+    }
+
+    await imagePM.release();
+    imagePM = undefined
+
+    await imageIS.release();
+    imageIS = undefined
+    return {
+      height,
+      width,
+      uri
+    }
+  }
+
+  private getFileSize(fd: number) {
+    let stat = fs.statSync(fd);
+    return stat.size;
+  }
+
+  private getImgTypeAndName(imgUri: string) {
+    let res = { type: '', fileName: '' } as Pick<Asset, 'type'> & Pick<Asset, 'fileName'>;
+    const mimeUri = imgUri.substring(0, 4)
+    if (mimeUri === 'file') {
+      let i = imgUri.lastIndexOf('/')
+      res.fileName = imgUri.substring(i + 1)
+      i = imgUri.lastIndexOf('.')
+      res.type = 'Unknown'
+      if (i != -1) {
+        res.type = imgUri.substring(i + 1)
+      }
+    }
+    return res;
   }
 }
