@@ -218,15 +218,17 @@ export class ImagePickerTurboModule extends TurboModule {
       imgObj.uri = this.copyFileToCache(file.fd, imgObj.type);
     };
     if (options.includeBase64) {
-      imgObj.base64 = await this.getFileBase64(imgObj.uri);
+      imgObj.base64 = await this.getFileBase64(uri);
     };
     fs.closeSync(file);
     return imgObj;
   }
 
   private async getFileBase64(uri: string) {
-    let text = await fs.readText(uri);
-    return buffer.from(text, 'utf8').toString('base64');
+    let file = fs.openSync(uri, fs.OpenMode.READ_ONLY);
+    let arrayBuffer = new ArrayBuffer(100 * 1024 * 1024);
+    let readLen = fs.readSync(file.fd, arrayBuffer);
+    return buffer.from(arrayBuffer, 0, readLen).toString('base64');
   }
 
   private getCacheFilePath(type) {
