@@ -37,6 +37,7 @@ import camera from '@ohos.multimedia.camera'
 import { BusinessError } from '@kit.BasicServicesKit';
 import cameraPicker from '@ohos.multimedia.cameraPicker';
 import { buffer } from '@kit.ArkTS';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
 
 export type MediaType = 'photo' | 'video' | 'mixed';
 
@@ -172,29 +173,29 @@ export class ImagePickerTurboModule extends TurboModule {
       results.didCancel = true
       return results
     }
-    let want = {
-      "type": "multipleselect",
-      "action": "ohos.want.action.photoPicker",
-      "parameters": {
-        uri: 'multipleselect',
-        maxSelectCount: selectionLimit,
-        filterMediaType: type == 'photo' ? 'FILTER_MEDIA_TYPE_IMAGE' : (type == 'video' ? 'FILTER_MEDIA_TYPE_VIDEO' : 'FILTER_MEDIA_TYPE_ALL')
-      },
-      "entities": []
+    try {
+      let PhotoSelectOptions = new photoAccessHelper.PhotoSelectOptions();
+      const Types = photoAccessHelper.PhotoViewMIMETypes;
+      PhotoSelectOptions.MIMEType = type == 'photo' ? Types.IMAGE_TYPE : (type == 'video' ? Types.VIDEO_TYPE : Types.IMAGE_VIDEO_TYPE);
+      PhotoSelectOptions.maxSelectNumber = selectionLimit;
+      let photoPicker = new photoAccessHelper.PhotoViewPicker();
+      let data = await photoPicker.select(PhotoSelectOptions).then(async (PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
+        let images: Array<string> = PhotoSelectResult.photoUris;
+        for (let value of images) {
+          results.assets.push(await this.getAsset(value, options))
+        }
+        return results;
+      }
+      ).catch((err: BusinessError) => {
+        console.error(`PhotoViewPicker.select failed with err: ${err.code}, ${err.message}`);
+      });
+      if(data) {
+        return data;
+      }
+    } catch (error) {
+      let err: BusinessError = error as BusinessError;
+      console.error(`PhotoViewPicker failed with err: ${err.code}, ${err.message}`);
     }
-
-    let result: AbilityResult = await this.ctx.uiAbilityContext.startAbilityForResult(want as Want);
-
-    if (result.resultCode == -1) {
-      results.didCancel = true
-      return results
-    }
-
-    let images: Array<string> = result.want.parameters['select-item-list'] as Array<string>
-    for (let value of images) {
-      results.assets.push(await this.getAsset(value, options))
-    }
-    return results;
   }
 
 
