@@ -205,6 +205,7 @@ export class ImagePickerTurboModule extends TurboModule {
     const { fileName, type } = this.getImgTypeAndName(uri);
     imgObj.fileName = fileName;
     imgObj.type = type;
+    imgObj.id = fileName;
     imgObj.originalPath = uri;
     let file = fs.openSync(uri, fs.OpenMode.CREATE);
     imgObj.fileSize = this.getFileSize(file.fd);
