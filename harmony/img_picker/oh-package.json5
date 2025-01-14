@@ -1,6 +1,6 @@
 {
-  "name": "img_picker",
-  "version": "1.0.0",
+  "name": "@react-native-oh-tpl/react-native-image-picker",
+  "version": "0.26.11-rc.1",
   "description": "Please describe the basic information.",
   "main": "Index.ets",
   "author": "",
