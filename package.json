@@ -1,7 +1,7 @@
 {
   "name": "@react-native-oh-tpl/react-native-image-picker",
   "description": "react-native-image-picker",
-  "version": "0.26.10",
+  "version": "0.26.11-rc.1",
   "main": "index.js",
   "repository": {
     "type": "git",
