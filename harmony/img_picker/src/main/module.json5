@@ -1,0 +1,9 @@
+{
+  "module": {
+    "name": "img_picker",
+    "type": "har",
+    "deviceTypes": [
+      "default"
+    ]
+  }
+}

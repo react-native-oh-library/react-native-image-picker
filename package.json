@@ -1,38 +1,33 @@
 {
-  "name": "react-native-image-picker",
-  "description": "A React Native module that allows you to use native UI to select media from the device library or directly from the camera",
+  "name": "@react-native-oh-tpl/react-native-image-picker",
+  "description": "react-native-image-picker",
   "version": "0.26.10",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/marcshilling/react-native-image-picker.git"
+    "url": "https://github.com/react-native-image-picker/react-native-image-picker.git"
+  },
+  "harmony": {
+    "alias": "react-native-image-picker"
+  },
+  "scripts": {
+    "codegen-lib": "rm -rf ../harmony/img_picker/src/main/cpp/generated && rm -rf ../harmony/img_picker/src/main/ets/generated && react-native codegen-lib-harmony --no-safety-check --npm-package-name react-native-image-picker --cpp-output-path ../harmony/img_picker/src/main/cpp/generated --ets-output-path ../harmony/img_picker/src/main/ets/generated --turbo-modules-spec-paths ./NativeImgPicker.ts"
+  },
+  "dependencies": {
+    "react-native-image-picker": "0.26.10"
+  },
+  "devDependencies": {
+    "react-native-harmony-cli": "npm:@react-native-oh/react-native-harmony-cli@^0.0.27",
+    "@react-native-community/cli": "latest"
   },
   "nativePackage": true,
-  "author": "Marc Shilling (marcshilling)",
-  "contributors": [
-    {
-      "name": "Matheus Santos",
-      "email": "vorj.dux@gmail.com"
-    },
-    {
-      "name": "Yoann Fuks",
-      "email": "yfuks@student.42.fr"
-    },
-    {
-      "name": "Alexander Ustinov",
-      "email": "rusfearuth@gmail.com"
-    }
-  ],
   "keywords": [
     "react-native",
     "react-native-image-picker",
     "react",
-    "native",
+    "native",               
     "image",
     "picker"
   ],
-  "scripts": {
-    "prepare": "rm -rf android/build Example/android/build Example/android/app/build node_modules"
-  },
   "types": "./index.d.ts"
 }
