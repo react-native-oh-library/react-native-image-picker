@@ -39,3 +39,6 @@ yarn.lock
 *.iml
 
 .vscode/
+package-lock.json
+BuildProfile.ets
+*.tgz
