@@ -102,7 +102,7 @@ export interface CameraOptions extends OptionsCommon {
 const PHOTO_EXT_LIST = ['xbm','tif','pjp','svgz','jpg','jpeg','ico','tiff','gif','svg','jfif','webp','png','bmp','pjpeg','avif']
 
 function isPhoto(ext: string) {
-  PHOTO_EXT_LIST.includes(ext);
+  return PHOTO_EXT_LIST.includes(ext);
 }
 
 export class ImagePickerTurboModule extends TurboModule {
