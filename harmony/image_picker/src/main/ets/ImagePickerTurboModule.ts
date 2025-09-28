@@ -149,6 +149,11 @@ export class ImagePickerTurboModule extends TurboModule {
       results.assets?.push(
         await this.getAsset(pickerResult.resultUri, options)
       );
+      if (results.assets?.length && results.assets?.length > 0){
+        results.didCancel = false;
+      } else {
+        results.didCancel = true;
+      }
       callback(results);
     } catch (error) {
       let err = error as BusinessError;
@@ -184,12 +189,16 @@ export class ImagePickerTurboModule extends TurboModule {
         for (let value of images) {
           results.assets.push(await this.getAsset(value, options))
         }
+        if (results.assets?.length && results.assets?.length > 0) {
+          results.didCancel = false;
+        }
         return results;
       }
       ).catch((err: BusinessError) => {
         console.error(`PhotoViewPicker.select failed with err: ${err.code}, ${err.message}`);
       });
       if(data) {
+        results.didCancel = true;
         return data;
       }
     } catch (error) {
