@@ -263,25 +263,25 @@ export class ImagePickerTurboModule extends TurboModule {
     let imgInfo = await imagePM.getImageInfo();
     let width = imgInfo.size.width;
     let height = imgInfo.size.height;
-    let xScale = 1;
-    let yScale = 1;
+    let scale = 1;
     const { maxWidth, maxHeight } = options;
     let isChange = false;
-    if (maxWidth && width > maxWidth) {
-      xScale = maxWidth / width;
-      width = maxWidth;
-      isChange = true;
+    if (( maxWidth && width > maxWidth ) || ( maxHeight && height > maxHeight)) {
+      let wScale = maxWidth ? maxWidth / width: Number(maxHeight) / height , 
+          hScale = maxHeight ? maxHeight / height: Number(maxWidth) / width;
+      scale = wScale < hScale ? wScale : hScale;
     }
-    if (maxHeight && height > maxHeight) {
-      yScale = maxHeight / height;
-      height = maxHeight;
+    if (scale!==1) {
+      width = width * scale ;     
+      height = height * scale ;
+      Logger.info(`width: ${width} height: ${height} `);
       isChange = true;
     }
     let uri = this.getCacheFilePath(type);
     if (isChange) {
       try {
-        Logger.info(`x, y scale: ${xScale}, ${yScale}`);
-        await imagePM.scale(xScale, yScale);
+        Logger.info(`scale: ${scale}`);
+        await imagePM.scale(scale, scale);
         const imagePackerApi: image.ImagePacker = image.createImagePacker();
         const file = fs.openSync(uri, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
         const buf = await imagePackerApi.packing(imagePM, {format: imgInfo.mimeType, quality: 98});
