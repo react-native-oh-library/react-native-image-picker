@@ -60,3 +60,4 @@ lib/
 
 *.tgz
 harmony/image_picker/oh-package-lock.json5
+harmony/image_picker/BuildProfile.ets
