@@ -191,6 +191,8 @@ export class ImagePickerTurboModule extends TurboModule {
         }
         if (results.assets?.length && results.assets?.length > 0) {
           results.didCancel = false;
+        } else {
+          results.didCancel = true;
         }
         return results;
       }
@@ -198,7 +200,6 @@ export class ImagePickerTurboModule extends TurboModule {
         console.error(`PhotoViewPicker.select failed with err: ${err.code}, ${err.message}`);
       });
       if(data) {
-        results.didCancel = true;
         return data;
       }
     } catch (error) {
